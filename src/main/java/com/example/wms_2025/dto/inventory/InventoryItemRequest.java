@@ -4,6 +4,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
 public record InventoryItemRequest(
-        @NotNull Long productId,
-        @NotNull @Min(1) Integer quantity) {
+                @NotNull Long productId,
+                @NotNull @Min(1) Integer quantity,
+                Long locationId) {
 }

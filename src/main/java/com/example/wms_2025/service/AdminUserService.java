@@ -7,6 +7,7 @@ import com.example.wms_2025.domain.enums.UserStatus;
 import com.example.wms_2025.dto.admin.AdminUserCreateRequest;
 import com.example.wms_2025.dto.admin.AdminUserResponse;
 import com.example.wms_2025.dto.admin.AdminUserUpdateRequest;
+import com.example.wms_2025.dto.admin.RoleOptionResponse;
 import com.example.wms_2025.exception.BusinessException;
 import com.example.wms_2025.repository.RoleRepository;
 import com.example.wms_2025.repository.UserRepository;
@@ -129,6 +130,12 @@ public class AdminUserService {
         return toResponse(user);
     }
 
+    public List<RoleOptionResponse> listRoles() {
+        return roleRepository.findAll().stream()
+                .map(role -> new RoleOptionResponse(role.getRoleCode(), role.getRoleName(), role.getDescription()))
+                .toList();
+    }
+
     private Set<Role> resolveRoles(Set<RoleCode> roleCodes) {
         if (roleCodes == null || roleCodes.isEmpty()) {
             throw new BusinessException("At least one role must be assigned");
@@ -155,7 +162,7 @@ public class AdminUserService {
     }
 
     private boolean isCurrentUser(Long targetId) {
-        User current = userService.getCurrentUser();
+        User current = userService.getCurrentUser(RoleCode.ADMIN, RoleCode.MANAGER);
         return current.getId().equals(targetId);
     }
 

@@ -36,4 +36,7 @@ public class InventoryItem {
 
     @Column(name = "actual_quantity")
     private Integer actualQuantity;
+
+    @Column(name = "location_id")
+    private Long locationId;
 }

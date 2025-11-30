@@ -58,11 +58,17 @@
           :total="pagination.total"
           :page-size="pagination.pageSize"
           v-model:current-page="pagination.page"
+          @current-change="handlePageChange"
         />
       </div>
     </section>
 
-    <UserFormDrawer v-model="formVisible" :model="currentUser" @submit="saveUser" />
+    <UserFormDrawer
+      v-model="formVisible"
+      :model="currentUser"
+      :role-options="roleOptions"
+      @submit="saveUser"
+    />
     <RoleAssignmentDrawer
       v-model="roleVisible"
       :value="currentRoles"
@@ -104,9 +110,15 @@ const loadRoles = async () => {
 const loadUsers = async () => {
   loading.value = true;
   try {
-    const res = await api.listAdminUsers(filters);
+    const res = await api.listAdminUsers({
+      ...filters,
+      page: pagination.page,
+      pageSize: pagination.pageSize
+    });
     users.value = res.items;
     pagination.total = res.total;
+    pagination.page = res.page;
+    pagination.pageSize = res.pageSize;
   } finally {
     loading.value = false;
   }
@@ -144,6 +156,11 @@ const assignRole = async roles => {
 const changeStatus = async (id, status) => {
   await api.updateUserStatus(id, status);
   ElMessage.success('状态已更新');
+};
+
+const handlePageChange = page => {
+  pagination.page = page;
+  loadUsers();
 };
 </script>
 

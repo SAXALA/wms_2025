@@ -4,7 +4,7 @@
       <h2>审批处理</h2>
       <el-breadcrumb separator="/">
         <el-breadcrumb-item to="/manager/pending-approvals">待我审批</el-breadcrumb-item>
-        <el-breadcrumb-item>{{ detail?.id ?? '加载中' }}</el-breadcrumb-item>
+        <el-breadcrumb-item>{{ detail?.displayId ?? detail?.id ?? '加载中' }}</el-breadcrumb-item>
       </el-breadcrumb>
     </div>
     <el-skeleton v-if="loading" rows="4" style="padding: 16px" />
@@ -12,7 +12,7 @@
       <section class="card-section">
         <div class="flex-between" style="margin-bottom: 16px">
           <div>
-            <h3>{{ detail?.type }} - {{ detail?.id }}</h3>
+            <h3>{{ detail?.typeLabel ?? detail?.type }} - {{ detail?.displayId ?? detail?.id }}</h3>
             <p style="color: #64748b">发起人：{{ detail?.applicant }} | 提交时间：{{ detail?.submittedAt }}</p>
           </div>
           <StatusTag v-if="detail" :status="detail.status" />

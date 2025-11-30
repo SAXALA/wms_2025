@@ -1,5 +1,6 @@
 <template>
-  <div class="layout">
+  <RouterView v-if="isBlankLayout" />
+  <div v-else class="layout">
     <SidebarMenu :collapsed="collapsed" @toggle="collapsed = !collapsed" />
     <div class="layout__content" :class="{ 'layout__content--full': collapsed }">
       <HeaderBar />
@@ -11,12 +12,15 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { RouterView } from 'vue-router';
+import { computed, ref } from 'vue';
+import { RouterView, useRoute } from 'vue-router';
 import SidebarMenu from '../components/SidebarMenu.vue';
 import HeaderBar from '../components/HeaderBar.vue';
 
 const collapsed = ref(false);
+const route = useRoute();
+
+const isBlankLayout = computed(() => route.meta.layout === 'blank');
 </script>
 
 <style scoped>

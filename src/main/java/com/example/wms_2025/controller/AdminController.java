@@ -5,19 +5,26 @@ import com.example.wms_2025.domain.enums.UserStatus;
 import com.example.wms_2025.dto.admin.AdminUserCreateRequest;
 import com.example.wms_2025.dto.admin.AdminUserResponse;
 import com.example.wms_2025.dto.admin.AdminUserUpdateRequest;
+import com.example.wms_2025.dto.admin.OperationLogArchiveResponse;
 import com.example.wms_2025.dto.admin.OperationLogResponse;
 import com.example.wms_2025.dto.admin.UserPasswordResetRequest;
 import com.example.wms_2025.dto.admin.UserRoleAssignmentRequest;
 import com.example.wms_2025.dto.admin.UserStatusUpdateRequest;
 import com.example.wms_2025.dto.common.ApiResponse;
 import com.example.wms_2025.dto.common.PageResponse;
+import com.example.wms_2025.dto.admin.RoleOptionResponse;
 import com.example.wms_2025.service.AdminUserService;
 import com.example.wms_2025.service.OperationLogService;
 import jakarta.validation.Valid;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -116,5 +123,53 @@ public class AdminController {
         PageResponse<OperationLogResponse> body = PageResponse.of(result.getTotalElements(), result.getTotalPages(),
                 result.getNumber(), result.getSize(), result.getContent());
         return ResponseEntity.ok(ApiResponse.ok("Fetched operation logs", body));
+    }
+
+    @GetMapping("/logs/export")
+    public ResponseEntity<byte[]> exportLogs(
+            @RequestParam(required = false) String username,
+            @RequestParam(required = false) String module,
+            @RequestParam(required = false) String action,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startTime,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endTime) {
+        byte[] data = operationLogService.exportLogs(username, module, action, startTime, endTime);
+        String timestamp = DateTimeFormatter.ofPattern("yyyyMMddHHmmss").format(LocalDateTime.now());
+        String fileName = String.format("operation-logs-%s.csv", timestamp);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType("text/csv"))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                .body(data);
+    }
+
+    @GetMapping("/logs/archives")
+    public ResponseEntity<ApiResponse<List<OperationLogArchiveResponse>>> listLogArchives(
+            @RequestParam(defaultValue = "30") int limit) {
+        List<OperationLogArchiveResponse> responses = operationLogService.listDailyArchives(limit);
+        return ResponseEntity.ok(ApiResponse.ok("Fetched archive summaries", responses));
+    }
+
+    @GetMapping("/logs/archives/{date}/download")
+    public ResponseEntity<byte[]> downloadArchive(
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        byte[] data = operationLogService.exportDailyArchive(date);
+        String fileName = String.format("operation-log-%s.csv", date.format(DateTimeFormatter.BASIC_ISO_DATE));
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType("text/csv"))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                .body(data);
+    }
+
+    @GetMapping("/logs/archives/{date}/preview")
+    public ResponseEntity<ApiResponse<List<OperationLogResponse>>> previewArchive(
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam(defaultValue = "50") int size) {
+        List<OperationLogResponse> responses = operationLogService.previewDaily(date, size);
+        return ResponseEntity.ok(ApiResponse.ok("Fetched archive preview", responses));
+    }
+
+    @GetMapping("/roles")
+    public ResponseEntity<ApiResponse<List<RoleOptionResponse>>> listRoles() {
+        List<RoleOptionResponse> responses = adminUserService.listRoles();
+        return ResponseEntity.ok(ApiResponse.ok("Fetched role list", responses));
     }
 }

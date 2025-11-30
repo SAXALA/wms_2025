@@ -6,12 +6,14 @@ import com.example.wms_2025.domain.entity.User;
 import com.example.wms_2025.domain.enums.ApprovalResult;
 import com.example.wms_2025.domain.enums.ApprovalStatus;
 import com.example.wms_2025.domain.enums.BusinessType;
+import com.example.wms_2025.domain.enums.RoleCode;
 import com.example.wms_2025.exception.BusinessException;
 import com.example.wms_2025.repository.ApprovalFlowRepository;
 import com.example.wms_2025.repository.ApprovalNodeRepository;
 import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -41,16 +43,28 @@ public class WorkflowService {
 
     @Transactional
     public ApprovalFlow recordDecision(Long flowId, User approver, boolean approved, String comment) {
+        Objects.requireNonNull(flowId, "flowId is required");
+
         ApprovalFlow flow = approvalFlowRepository.findById(flowId)
                 .orElseThrow(() -> new BusinessException("Approval flow not found"));
-        if (!flow.getApprover().getId().equals(approver.getId())) {
+        User assignedApprover = flow.getApprover();
+        boolean isAssignedApprover = assignedApprover.getId().equals(approver.getId());
+        boolean isAdmin = approver.getRoles().stream()
+                .anyMatch(role -> role.getRoleCode() == RoleCode.ADMIN);
+
+        if (!isAssignedApprover && !isAdmin) {
             throw new BusinessException("User is not assigned approver");
         }
 
         ApprovalNode node = flow.getNodes().stream()
-                .filter(n -> n.getApprover().getId().equals(approver.getId()))
+                .filter(n -> n.getApprover().getId().equals(assignedApprover.getId()))
                 .findFirst()
                 .orElseThrow(() -> new BusinessException("Approval node missing"));
+
+        if (!isAssignedApprover && isAdmin) {
+            node.setApprover(approver);
+            flow.setApprover(approver);
+        }
         node.setApprovalResult(approved ? ApprovalResult.APPROVED : ApprovalResult.REJECTED);
         node.setComment(comment);
         node.setApprovalTime(LocalDateTime.now());

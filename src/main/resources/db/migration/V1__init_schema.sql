@@ -24,6 +24,16 @@ CREATE TABLE user_roles (
     CONSTRAINT fk_user_roles_role FOREIGN KEY (role_id) REFERENCES roles (id)
 );
 
+CREATE TABLE warehouse_location (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    code VARCHAR(64) NOT NULL UNIQUE,
+    name VARCHAR(128) NOT NULL,
+    description VARCHAR(256),
+    is_active TINYINT(1) NOT NULL DEFAULT 1,
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL
+);
+
 CREATE TABLE approval_flow (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     applicant_id BIGINT NOT NULL,
@@ -88,7 +98,9 @@ CREATE TABLE inventory_item (
     product_id BIGINT NOT NULL,
     quantity INT NOT NULL,
     actual_quantity INT,
-    CONSTRAINT fk_inventory_item_application FOREIGN KEY (application_id) REFERENCES inventory_application (id)
+    location_id BIGINT,
+    CONSTRAINT fk_inventory_item_application FOREIGN KEY (application_id) REFERENCES inventory_application (id),
+    CONSTRAINT fk_inventory_item_location FOREIGN KEY (location_id) REFERENCES warehouse_location (id)
 );
 
 CREATE TABLE inventory (
@@ -96,7 +108,9 @@ CREATE TABLE inventory (
     product_id BIGINT NOT NULL UNIQUE,
     current_stock INT NOT NULL,
     safety_stock INT NOT NULL,
-    locked_stock INT NOT NULL
+    locked_stock INT NOT NULL,
+    location_id BIGINT,
+    CONSTRAINT fk_inventory_location FOREIGN KEY (location_id) REFERENCES warehouse_location (id)
 );
 
 CREATE TABLE inventory_report (
@@ -116,19 +130,79 @@ CREATE TABLE operation_report (
     approval_count INT
 );
 
-INSERT INTO roles (role_name, role_code, description)
-VALUES ('Purchaser', 'PURCHASER', 'Procurement specialist'),
-       ('Warehouse Operator', 'OPERATOR', 'Warehouse operations'),
-       ('Warehouse Manager', 'MANAGER', 'Approval authority');
+INSERT INTO
+    roles (
+        role_name,
+        role_code,
+        description
+    )
+VALUES (
+        'Purchaser',
+        'PURCHASER',
+        'Procurement specialist'
+    ),
+    (
+        'Warehouse Operator',
+        'OPERATOR',
+        'Warehouse operations'
+    ),
+    (
+        'Warehouse Manager',
+        'MANAGER',
+        'Approval authority'
+    );
 
-INSERT INTO users (username, password, real_name, department, status, created_at, updated_at)
-VALUES ('purchaser1', '$2a$10$abcdefghijklmnopqrstuv', '采购员张三', '采购部', 'ACTIVE', NOW(), NOW()),
-       ('operator1', '$2a$10$abcdefghijklmnopqrstuv', '仓管员李四', '仓储部', 'ACTIVE', NOW(), NOW()),
-       ('manager1', '$2a$10$abcdefghijklmnopqrstuv', '仓库经理王五', '仓储部', 'ACTIVE', NOW(), NOW());
+INSERT INTO
+    users (
+        username,
+        password,
+        real_name,
+        department,
+        status,
+        created_at,
+        updated_at
+    )
+VALUES (
+        'purchaser1',
+        '$2a$10$CwTycUXWue0Thq9StjUM0uJ8rhM1fZRMVAb9/T/jGj33jjlHzvELO',
+        '采购员张三',
+        '采购部',
+        'ACTIVE',
+        NOW(),
+        NOW()
+    ),
+    (
+        'operator1',
+        '$2a$10$CwTycUXWue0Thq9StjUM0uJ8rhM1fZRMVAb9/T/jGj33jjlHzvELO',
+        '仓管员李四',
+        '仓储部',
+        'ACTIVE',
+        NOW(),
+        NOW()
+    ),
+    (
+        'manager1',
+        '$2a$10$CwTycUXWue0Thq9StjUM0uJ8rhM1fZRMVAb9/T/jGj33jjlHzvELO',
+        '仓库经理王五',
+        '仓储部',
+        'ACTIVE',
+        NOW(),
+        NOW()
+    );
 
-INSERT INTO user_roles (user_id, role_id)
+INSERT INTO
+    user_roles (user_id, role_id)
 SELECT u.id, r.id
 FROM users u
-JOIN roles r ON (u.username = 'purchaser1' AND r.role_code = 'PURCHASER')
-   OR (u.username = 'operator1' AND r.role_code = 'OPERATOR')
-   OR (u.username = 'manager1' AND r.role_code = 'MANAGER');
+    JOIN roles r ON (
+        u.username = 'purchaser1'
+        AND r.role_code = 'PURCHASER'
+    )
+    OR (
+        u.username = 'operator1'
+        AND r.role_code = 'OPERATOR'
+    )
+    OR (
+        u.username = 'manager1'
+        AND r.role_code = 'MANAGER'
+    );

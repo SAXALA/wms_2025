@@ -40,7 +40,18 @@
       <el-table :data="form.items" border>
         <el-table-column prop="sku" label="SKU" width="120" />
         <el-table-column prop="name" label="商品名称" />
+        <el-table-column prop="unit" label="单位" width="80" />
         <el-table-column prop="quantity" label="数量" width="100" />
+        <el-table-column label="单价" width="120">
+          <template #default="{ row }">
+            {{ formatCurrency(row.price) }}
+          </template>
+        </el-table-column>
+        <el-table-column label="金额" width="140">
+          <template #default="{ row }">
+            {{ formatCurrency(row.price * row.quantity) }}
+          </template>
+        </el-table-column>
         <el-table-column label="操作" width="100">
           <template #default="{ $index }">
             <el-button type="danger" link @click="removeLine($index)">移除</el-button>
@@ -48,6 +59,9 @@
         </el-table-column>
       </el-table>
       <el-empty v-if="!form.items.length" description="请选择商品加入清单" />
+      <div class="total-line" v-else>
+        合计金额：<span>{{ formatCurrency(totalAmount) }}</span>
+      </div>
     </section>
     <section class="card-section">
       <h3>备注信息</h3>
@@ -62,7 +76,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, computed } from 'vue';
 import { ElMessage } from 'element-plus';
 import { api } from '../../services/api.js';
 
@@ -75,6 +89,10 @@ const form = reactive({
   remark: '',
   items: []
 });
+
+const totalAmount = computed(() =>
+  form.items.reduce((sum, item) => sum + Number(item.price ?? 0) * Number(item.quantity ?? 0), 0)
+);
 
 onMounted(async () => {
   products.value = await api.listProducts();
@@ -93,11 +111,18 @@ const addLine = () => {
   }
   const product = products.value.find(item => item.id === selectedProductId.value);
   if (!product) return;
-  const existing = form.items.find(item => item.id === product.id);
+  const existing = form.items.find(item => item.productId === product.id);
   if (existing) {
     existing.quantity += form.quantity;
   } else {
-    form.items.push({ id: product.id, sku: product.sku, name: product.name, quantity: form.quantity });
+    form.items.push({
+      productId: product.id,
+      sku: product.sku,
+      name: product.name,
+      unit: product.unit,
+      price: product.price,
+      quantity: form.quantity
+    });
   }
   ElMessage.success('已加入清单');
 };
@@ -115,7 +140,8 @@ const handleSubmit = async () => {
   try {
     await api.submitPurchase({
       remark: form.remark,
-      items: form.items
+      items: form.items,
+      totalAmount: totalAmount.value
     });
     ElMessage.success('采购申请提交成功');
     form.items = [];
@@ -125,4 +151,23 @@ const handleSubmit = async () => {
     loading.value = false;
   }
 };
+
+const formatCurrency = value => {
+  const number = Number(value ?? 0);
+  return number.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
 </script>
+
+<style scoped>
+.total-line {
+  margin-top: 16px;
+  text-align: right;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.total-line span {
+  color: #2563eb;
+  margin-left: 8px;
+}
+</style>

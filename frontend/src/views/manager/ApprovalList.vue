@@ -3,15 +3,23 @@
     <div class="page-header flex-between">
       <h2>待我审批</h2>
       <el-select v-model="filterType" placeholder="类型筛选" clearable style="width: 200px">
-        <el-option label="采购申请" value="采购申请" />
-        <el-option label="入库申请" value="入库申请" />
-        <el-option label="出库申请" value="出库申请" />
+        <el-option label="采购申请" value="PROCUREMENT" />
+        <el-option label="入库申请" value="INBOUND" />
+        <el-option label="出库申请" value="OUTBOUND" />
       </el-select>
     </div>
     <section class="card-section">
       <el-table :data="filtered" border stripe>
-        <el-table-column prop="id" label="单据号" width="150" />
-        <el-table-column prop="type" label="类型" width="140" />
+        <el-table-column label="单据号" width="160">
+          <template #default="{ row }">
+            {{ row.displayId ?? row.id }}
+          </template>
+        </el-table-column>
+        <el-table-column label="类型" width="140">
+          <template #default="{ row }">
+            {{ row.typeLabel ?? row.type }}
+          </template>
+        </el-table-column>
         <el-table-column prop="applicant" label="发起人" width="120" />
         <el-table-column prop="submittedAt" label="提交时间" width="160" />
         <el-table-column label="状态" width="120">

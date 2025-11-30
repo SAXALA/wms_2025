@@ -8,6 +8,7 @@ import com.example.wms_2025.dto.inventory.CreateInventoryApplicationRequest;
 import com.example.wms_2025.dto.inventory.ExecuteInventoryRequest;
 import com.example.wms_2025.dto.inventory.InventoryApplicationResponse;
 import com.example.wms_2025.service.InventoryService;
+import com.example.wms_2025.dto.inventory.InventoryStockResponse;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -89,5 +90,11 @@ public class InventoryController {
                 List.of(InventoryApplicationStatus.PENDING_APPROVAL, InventoryApplicationStatus.APPROVED,
                         InventoryApplicationStatus.EXECUTING, InventoryApplicationStatus.COMPLETED));
         return ResponseEntity.ok(ApiResponse.ok("Query successful", responses));
+    }
+
+    @GetMapping("/stocks")
+    public ResponseEntity<ApiResponse<List<InventoryStockResponse>>> listStocks() {
+        List<InventoryStockResponse> responses = inventoryService.listStocks();
+        return ResponseEntity.ok(ApiResponse.ok("Inventory snapshot fetched", responses));
     }
 }

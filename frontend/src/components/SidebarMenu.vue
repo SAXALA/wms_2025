@@ -13,11 +13,11 @@
       :collapse="collapsed"
       router
     >
-      <template v-for="section in menu" :key="section.base">
+      <template v-for="section in visibleMenu" :key="section.base">
         <el-sub-menu :index="section.base">
           <template #title>
             <el-icon><component :is="section.icon" /></el-icon>
-            <span>{{ section.title }}</span>
+            <span >{{ section.title }}</span>
           </template>
           <el-menu-item
             v-for="item in section.children"
@@ -36,6 +36,7 @@
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { menu } from '../router/menuConfig.js';
+import { useAuth } from '../stores/auth.js';
 
 const props = defineProps({
   collapsed: {
@@ -48,6 +49,16 @@ defineEmits(['toggle']);
 
 const route = useRoute();
 const activePath = computed(() => route.path);
+const auth = useAuth();
+
+const visibleMenu = computed(() =>
+  menu.filter(section => {
+    if (!section.roles?.length) {
+      return true;
+    }
+    return section.roles.some(role => auth.hasRole(role));
+  })
+);
 </script>
 
 <style scoped>
@@ -91,5 +102,13 @@ const activePath = computed(() => route.path);
   flex: 1;
   border-right: none;
   background: transparent;
+}
+
+.sidebar__menu :deep(.el-sub-menu__title span) {
+  color: #ffffff;
+}
+
+.sidebar__menu :deep(.el-sub-menu__title .el-icon) {
+  color: #ffffff;
 }
 </style>

@@ -6,11 +6,15 @@
     </div>
     <section class="card-section">
       <el-table :data="filteredTasks" border stripe>
-        <el-table-column prop="id" label="任务编号" width="140" />
-        <el-table-column prop="type" label="类型" width="120">
+        <el-table-column label="任务编号" width="160">
+          <template #default="{ row }">
+            {{ row.displayId ?? row.id }}
+          </template>
+        </el-table-column>
+        <el-table-column label="类型" width="120">
           <template #default="{ row }">
             <el-tag :type="row.type === 'INBOUND' ? 'success' : 'warning'">
-              {{ row.type === 'INBOUND' ? '入库' : '出库' }}
+              {{ row.typeLabel ?? (row.type === 'INBOUND' ? '入库' : '出库') }}
             </el-tag>
           </template>
         </el-table-column>
@@ -23,8 +27,8 @@
         </el-table-column>
         <el-table-column label="操作" width="160">
           <template #default="">
-            <el-button link type="primary">开始执行</el-button>
-            <el-button link>查看明细</el-button>
+            <!-- <el-button link >开始执行</el-button> -->
+            <el-button link type="primary">查看明细</el-button>
           </template>
         </el-table-column>
       </el-table>

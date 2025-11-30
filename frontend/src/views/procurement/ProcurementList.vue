@@ -15,7 +15,11 @@
     </div>
     <section class="card-section">
       <el-table :data="filteredRequests" border stripe>
-        <el-table-column prop="id" label="申请单号" width="140" />
+        <el-table-column label="申请单号" width="160">
+          <template #default="{ row }">
+            {{ row.displayId ?? row.id }}
+          </template>
+        </el-table-column>
         <el-table-column prop="submittedAt" label="提交时间" width="160" />
         <el-table-column label="商品明细">
           <template #default="{ row }">
@@ -54,9 +58,10 @@ onMounted(async () => {
 const filteredRequests = computed(() => {
   const kw = keyword.value.trim().toLowerCase();
   if (!kw) return requests.value;
-  return requests.value.filter(item =>
-    item.id.toLowerCase().includes(kw) ||
-    item.status.toLowerCase().includes(kw)
-  );
+  return requests.value.filter(item => {
+    const id = (item.displayId ?? item.id ?? '').toLowerCase();
+    const status = (item.status ?? '').toLowerCase();
+    return id.includes(kw) || status.includes(kw);
+  });
 });
 </script>

@@ -3,8 +3,11 @@ package com.example.wms_2025.dto.procurement;
 import java.math.BigDecimal;
 
 public record ProcurementItemResponse(
-        Long id,
-        Long productId,
-        Integer quantity,
-        BigDecimal expectedPrice) {
+                Long id,
+                Long productId,
+                Integer quantity,
+                BigDecimal expectedPrice,
+                String sku,
+                String name,
+                String unit) {
 }

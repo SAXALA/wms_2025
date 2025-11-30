@@ -3,6 +3,7 @@ export const menu = [
         base: '/procurement',
         title: '采购员工作台',
         icon: 'ShoppingCart',
+        roles: ['PURCHASER'],
         children: [
             { path: '/procurement/create', title: '采购申请创建' },
             { path: '/procurement/list', title: '我的申请列表' },
@@ -13,10 +14,11 @@ export const menu = [
         base: '/warehouse',
         title: '仓库管理员',
         icon: 'Box',
+        roles: ['OPERATOR'],
         children: [
             { path: '/warehouse/inbound', title: '入库申请' },
             { path: '/warehouse/outbound', title: '出库申请' },
-            { path: '/warehouse/tasks', title: '待执行任务' },
+            { path: '/warehouse/tasks', title: '任务记录' },
             { path: '/warehouse/inventory', title: '库存查询' }
         ]
     },
@@ -24,17 +26,19 @@ export const menu = [
         base: '/manager',
         title: '仓库经理',
         icon: 'Suitcase',
+        roles: ['MANAGER'],
         children: [
             { path: '/manager/pending-approvals', title: '待我审批' },
-            { path: '/manager/approval/:id?', title: '审批处理' },
+            { path: '/manager/locations', title: '库位管理' },
             { path: '/manager/analytics', title: '报表仪表盘' },
-            { path: '/manager/monitoring', title: '库存监控' }
+            { path: '/manager/monitoring', title: '库存监控' },
         ]
     },
     {
         base: '/admin',
         title: '系统管理员',
         icon: 'Management',
+        roles: ['ADMIN'],
         children: [
             { path: '/admin/users', title: '用户管理' },
             { path: '/admin/system', title: '系统监控' },

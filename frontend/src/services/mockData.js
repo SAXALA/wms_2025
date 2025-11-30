@@ -139,7 +139,39 @@ export const mockApi = {
         ]);
     },
     listOperationLogs() {
-        return Promise.resolve(operationLogs);
+        return Promise.resolve({
+            records: operationLogs.map(item => ({
+                ...item,
+                createdAtText: item.createdAt
+            })),
+            total: operationLogs.length,
+            page: 1,
+            pageSize: operationLogs.length || 20
+        });
+    },
+    exportOperationLogs() {
+        const blob = new Blob(['mock operation logs'], { type: 'text/csv' });
+        return Promise.resolve({ blob, fileName: 'operation-logs-mock.csv' });
+    },
+    listLogArchives() {
+        return Promise.resolve([
+            {
+                fileName: 'operation-log-20251127.csv',
+                date: '2025-11-27',
+                recordCount: operationLogs.length,
+                lastRecordAt: operationLogs[0]?.createdAt
+            }
+        ]);
+    },
+    downloadLogArchive() {
+        const blob = new Blob(['mock daily log'], { type: 'text/csv' });
+        return Promise.resolve({ blob, fileName: 'operation-log-mock.csv' });
+    },
+    previewLogArchive() {
+        return Promise.resolve(operationLogs.map(item => ({
+            ...item,
+            createdAtText: item.createdAt
+        })));
     },
     listAdminUsers(params = {}) {
         let result = [...adminUsers];
